@@ -418,10 +418,11 @@ func (p *Pool) put(pc *poolConn, forceClose bool) error {
 	p.mu.Lock()
 	if !p.closed && !forceClose {
 		pc.t = nowFunc()
+		p.idle.pushBack(pc)
 		if p.idle.count > p.MaxIdle {
-		    // do nothing
+			pc = p.idle.back
+			p.idle.popBack()
 		} else {
-			p.idle.pushBack(pc)
 			pc = nil
 		}
 	}
