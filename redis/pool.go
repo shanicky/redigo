@@ -418,11 +418,10 @@ func (p *Pool) put(pc *poolConn, forceClose bool) error {
 	p.mu.Lock()
 	if !p.closed && !forceClose {
 		pc.t = nowFunc()
-		p.idle.pushFront(pc)
 		if p.idle.count > p.MaxIdle {
-			pc = p.idle.back
-			p.idle.popBack()
+		    // do nothing
 		} else {
+			p.idle.pushBack(pc)
 			pc = nil
 		}
 	}
@@ -606,6 +605,21 @@ func (l *idleList) pushFront(pc *poolConn) {
 		l.front.prev = pc
 	}
 	l.front = pc
+	l.count++
+	return
+}
+
+func (l *idleList) pushBack(pc *poolConn) {
+	pc.prev = l.back
+	pc.next = nil
+
+	if l.count == 0 {
+		l.front = pc
+	} else {
+		l.back.next = pc
+	}
+
+	l.back = pc
 	l.count++
 	return
 }
